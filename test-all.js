@@ -3,7 +3,6 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
-// Require compiled app
 const app = require('./dist/app.js').default;
 
 const testCases = [
@@ -84,10 +83,7 @@ const testCases = [
 async function runTests() {
   const server = app.listen(0, async () => {
     const port = server.address().port;
-    console.log(`\n======================================================`);
-    console.log(`🧪 Running Full Test Suite on ephemeral port: ${port}`);
-    console.log(`🤖 Using model: ${process.env.GEMINI_MODEL}`);
-    console.log(`======================================================\n`);
+    console.log(`Running test suite on ephemeral port ${port} (model: ${process.env.GEMINI_MODEL})\n`);
 
     let passedCount = 0;
     let failedCount = 0;
@@ -130,28 +126,24 @@ async function runTests() {
         const categoryOk = !tc.expectedCategory || (res.data && res.data.category === tc.expectedCategory);
 
         if (statusOk && categoryOk) {
-          console.log(`✅ PASS: ${tc.name}`);
-          console.log(`   Response:`, JSON.stringify(res.data));
+          console.log(`PASS: ${tc.name}`);
           passedCount++;
         } else {
-          console.error(`❌ FAIL: ${tc.name}`);
-          console.error(`   Expected status: ${tc.expectedStatus}, got: ${res.status}`);
+          console.error(`FAIL: ${tc.name}`);
+          console.error(`  Expected status: ${tc.expectedStatus}, got: ${res.status}`);
           if (tc.expectedCategory) {
-            console.error(`   Expected category: ${tc.expectedCategory}, got: ${res.data?.category}`);
+            console.error(`  Expected category: ${tc.expectedCategory}, got: ${res.data?.category}`);
           }
-          console.error(`   Response body:`, res.data);
+          console.error(`  Response body:`, res.data);
           failedCount++;
         }
       } catch (err) {
-        console.error(`❌ ERROR in ${tc.name}:`, err.message);
+        console.error(`ERROR in ${tc.name}:`, err.message);
         failedCount++;
       }
-      console.log('------------------------------------------------------');
     }
 
-    console.log(`\n======================================================`);
-    console.log(`🏁 Test Summary: ${passedCount} PASSED, ${failedCount} FAILED`);
-    console.log(`======================================================\n`);
+    console.log(`\nTest results: ${passedCount} passed, ${failedCount} failed`);
 
     server.close();
     process.exit(failedCount > 0 ? 1 : 0);

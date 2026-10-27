@@ -4,19 +4,15 @@ import { ServiceError, TimeoutError, ModelResponseError } from '../services/clas
 import { ClassifyErrorResponse } from '../types/classify.types';
 import { env } from '../config/env';
 
-/**
- * Centralized error-handling middleware.
- * Intercepts all application errors, logs details, and formats standard HTTP error responses.
- * Guarantees the Express process never crashes due to unhandled route exceptions.
- */
 export const errorHandler = (
   err: unknown,
   _req: Request,
   res: Response<ClassifyErrorResponse>,
+  // NextFunction parameter is required so Express recognizes this as an error-handling middleware.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _next: NextFunction
 ): void => {
-  // 1. Handle JSON parse error from express.json() body-parser
+  // Catch malformed JSON payloads rejected by Express body-parser.
   if (err instanceof SyntaxError && 'status' in err && (err as { status: unknown }).status === 400 && 'body' in err) {
     res.status(400).json({
       success: false,
@@ -28,7 +24,6 @@ export const errorHandler = (
     return;
   }
 
-  // 2. Handle request validation errors (missing field, empty string, oversized input, invalid types)
   if (err instanceof ValidationError) {
     res.status(err.statusCode).json({
       success: false,
@@ -40,7 +35,6 @@ export const errorHandler = (
     return;
   }
 
-  // 3. Handle AI Request Timeout errors
   if (err instanceof TimeoutError) {
     res.status(err.statusCode).json({
       success: false,
@@ -52,7 +46,6 @@ export const errorHandler = (
     return;
   }
 
-  // 4. Handle invalid or unparseable AI model outputs
   if (err instanceof ModelResponseError) {
     res.status(err.statusCode).json({
       success: false,
@@ -64,7 +57,6 @@ export const errorHandler = (
     return;
   }
 
-  // 5. Handle generic or specific service errors (e.g. Gemini API failure, quota, auth)
   if (err instanceof ServiceError) {
     res.status(err.statusCode).json({
       success: false,
@@ -76,11 +68,9 @@ export const errorHandler = (
     return;
   }
 
-  // 6. Handle standard JavaScript errors or unexpected errors
   const isProd = env.isProduction();
   const errorMessage = err instanceof Error ? err.message : 'An unexpected internal error occurred.';
 
-  // Always log unexpected errors to stderr for observability
   console.error('[Unhandled Internal Error]:', err);
 
   res.status(500).json({
@@ -92,4 +82,3 @@ export const errorHandler = (
     },
   });
 };
-

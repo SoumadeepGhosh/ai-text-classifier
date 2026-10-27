@@ -1,8 +1,5 @@
 import { env } from '../config/env';
 
-/**
- * Custom error class for request validation failures (HTTP 400).
- */
 export class ValidationError extends Error {
   public readonly statusCode = 400;
 
@@ -13,10 +10,6 @@ export class ValidationError extends Error {
   }
 }
 
-/**
- * Validates the input body for the classification endpoint.
- * Ensures the payload has a non-empty string in the 'text' field and does not exceed maximum length.
- */
 export const validateClassifyPayload = (body: unknown): string => {
   if (typeof body !== 'object' || body === null || Array.isArray(body)) {
     throw new ValidationError('Request body must be a valid JSON object.');
@@ -49,4 +42,3 @@ export const validateClassifyPayload = (body: unknown): string => {
 
   return trimmed;
 };
-

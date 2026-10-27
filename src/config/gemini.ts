@@ -1,30 +1,19 @@
 import { GoogleGenAI } from '@google/genai';
 import { env } from './env';
 
-/**
- * Singleton Gemini client instance.
- * Ensures the GoogleGenAI SDK client is only initialized once across the entire application lifecycle.
- */
-let geminiClientInstance: GoogleGenAI | null = null;
+// Reuse a single client instance across requests.
+let client: GoogleGenAI | null = null;
 
-/**
- * Retrieves the reusable singleton Gemini API client.
- * Validates the API key before initialization.
- */
 export const getGeminiClient = (): GoogleGenAI => {
-  if (!geminiClientInstance) {
-    const apiKey = env.GEMINI_API_KEY;
-    if (!apiKey) {
-      throw new Error(
-        'GEMINI_API_KEY is not defined. Please configure GEMINI_API_KEY in your .env file.'
-      );
+  if (!client) {
+    if (!env.GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY is not defined. Please configure it in your .env file.');
     }
 
-    geminiClientInstance = new GoogleGenAI({
-      apiKey,
+    client = new GoogleGenAI({
+      apiKey: env.GEMINI_API_KEY,
     });
   }
 
-  return geminiClientInstance;
+  return client;
 };
-
